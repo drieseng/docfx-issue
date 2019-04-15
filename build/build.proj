@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Clean;Build;GenerateDoc" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+    <Import Project="$(MSBuildProjectDirectory)\..\Directory.Build.props"/>
+    <Import Project="$(MSBuildProjectDirectory)\DocFX.targets"/>
+    <!-- Build all projects, and create deployment artifacts -->
+    <Target Name="Clean">
+        <ItemGroup>
+            <DirectoriesToRemove Remove="@(DirectoriesToRemove)"/>
+            <DirectoriesToRemove Include="$(SolutionTempDirectory)"/>
+            <DirectoriesToRemove Include="$(SolutionHomeDirectory)src\bin"/>
+            <DirectoriesToRemove Include="$(SolutionHomeDirectory)src\obj"/>
+        </ItemGroup>
+        <RemoveDir Directories="@(DirectoriesToRemove)"/>
+    </Target>
+    <Target Name="Build">
+        <ItemGroup>
+            <ProjectToBuild Remove="@(ProjectToBuild)"/>
+            <ProjectToBuild Include="$(SolutionHomeDirectory)\src\DocFxCustomAttributeProblem.sln"/>
+        </ItemGroup>
+        <MSBuild Projects="@(ProjectToBuild)" Targets="Rebuild"/>
+    </Target>
+    <Target Name="GenerateDoc" DependsOnTargets="Build;DownloadDocFx">
+        <ItemGroup>
+            <DocfxConfigFiles Include="$(SolutionHomeDirectory)\doc\*.*"/>
+        </ItemGroup>
+        
+        <Copy SourceFiles="@(DocfxConfigFiles)" DestinationFolder="$(SolutionTempDirectory)\generate-doc\project"/>
+        <Exec Command="$(DocFxTool) metadata docfx_project.json --loglevel Warning" WorkingDirectory="$(SolutionTempDirectory)\generate-doc\project"/>
+        <Exec Command="$(DocFxTool) build docfx_project.json -t statictoc -o $(SolutionTempDirectory)\generate-doc\project --loglevel Warning" WorkingDirectory="$(SolutionTempDirectory)\generate-doc\project"/>
+
+        <RemoveDir Directories="$(SolutionTempDirectory)\generate-doc\metadata"/>
+
+        <Copy SourceFiles="@(DocfxConfigFiles)" DestinationFolder="$(SolutionTempDirectory)\generate-doc\assembly"/>
+        <Exec Command="$(DocFxTool) metadata docfx_assembly.json --loglevel Warning" WorkingDirectory="$(SolutionTempDirectory)\generate-doc\assembly"/>
+        <Exec Command="$(DocFxTool) build docfx_assembly.json -t statictoc -o $(SolutionTempDirectory)\generate-doc\assembly --loglevel Warning" WorkingDirectory="$(SolutionTempDirectory)\generate-doc\assembly"/>
+    </Target>
+</Project>

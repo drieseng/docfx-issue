@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <SolutionHomeDirectory>$(MSBuildThisFileDirectory)</SolutionHomeDirectory>
+    <SolutionTempDirectory>$(SolutionHomeDirectory)temp</SolutionTempDirectory>
+  </PropertyGroup>
+</Project>

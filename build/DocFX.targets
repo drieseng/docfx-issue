@@ -1,0 +1,40 @@
+<Project>
+    <PropertyGroup>
+        <GeneratedDocDirectory>$(SolutionTempDirectory)\doc</GeneratedDocDirectory>
+    </PropertyGroup>
+    <Target Name="DefineDocFXTool">
+        <PropertyGroup>
+            <DocFXTool>$(SolutionTempDirectory)\docfx\docfx.exe</DocFXTool>
+        </PropertyGroup>
+    </Target>
+    <Target Name="DownloadDocFX" DependsOnTargets="DefineDocFXTool" Condition="!Exists('$(DocFXTool)')">
+        <PropertyGroup>
+            <DocFXToolDir>$([System.IO.Path]::GetDirectoryName($(DocFXTool)))</DocFXToolDir>
+            <DocFXUrl>https://github.com/dotnet/docfx/releases/download/v2.41/docfx.zip</DocFXUrl>
+            <DocFXArchive>$(SolutionTempDirectory)\docfx.zip</DocFXArchive>
+        </PropertyGroup>
+        <MakeDir Directories="$(DocFXToolDir)"/>
+        <DownloadFile Address="$(DocFXUrl)" FileName="$(DocFXArchive)"/>
+        <Unzip SourceFiles="$(DocFXArchive)" DestinationFolder="$(DocFXToolDir)" OverwriteReadOnlyFiles="true" />
+    </Target>
+  <UsingTask TaskName="DownloadFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <Address ParameterType="System.String" Required="true"/>
+      <FileName ParameterType="System.String" Required="true"/>
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System"/>
+      <Using Namespace="System.Net"/>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+          var webClient = new WebClient();
+          IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+          if (defaultProxy != null)
+          {
+              defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+              webClient.Proxy = defaultProxy;
+          }      
+          webClient.DownloadFile(Address, FileName);
+          ]]></Code>
+    </Task>
+  </UsingTask>
+</Project>
